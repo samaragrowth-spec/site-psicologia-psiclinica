@@ -1,0 +1,79 @@
+# ==============================================================================
+# ARCHIVO DE CONFIGURACAO APACHE .HTACCESS - PSICLINICA
+# ==============================================================================
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    # --------------------------------------------------------------------------
+    # 1. FORCAR HTTPS (Redirecionamento 301 de HTTP para HTTPS)
+    # --------------------------------------------------------------------------
+    RewriteCond %{HTTPS} off
+    RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+    # --------------------------------------------------------------------------
+    # 2. PADRONIZAR WWW (Redirecionamento 301 de www para nao-www)
+    # --------------------------------------------------------------------------
+    RewriteCond %{HTTP_HOST} ^www\.(.+) [NC]
+    RewriteRule ^(.*)$ https://%1/$1 [R=301,L]
+</IfModule>
+
+# ------------------------------------------------------------------------------
+# 3. PAGINA 404 PERSONALIZADA (Retorno a Home / Index para One-Page)
+# ------------------------------------------------------------------------------
+ErrorDocument 404 /index.html
+
+# ------------------------------------------------------------------------------
+# 4. COMPRESSAO GZIP / DEFLATE PARA PERFORMANCE
+# ------------------------------------------------------------------------------
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/x-javascript application/json image/svg+xml
+</IfModule>
+
+# ------------------------------------------------------------------------------
+# 5. CACHE DE NAVEGADOR E CACHE-BUSTING RESTRITO
+# ------------------------------------------------------------------------------
+
+# Configuração de Expiração via mod_expires
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresDefault "access plus 0 seconds"
+
+    # Imagens e Midias - 1 Mes (2592000 segundos)
+    ExpiresByType image/jpeg "access plus 1 month"
+    ExpiresByType image/png "access plus 1 month"
+    ExpiresByType image/webp "access plus 1 month"
+    ExpiresByType image/svg+xml "access plus 1 month"
+    ExpiresByType image/x-icon "access plus 1 month"
+    ExpiresByType image/gif "access plus 1 month"
+
+    # CSS e JS - 1 Semana (604800 segundos)
+    ExpiresByType text/css "access plus 1 week"
+    ExpiresByType application/javascript "access plus 1 week"
+    ExpiresByType text/javascript "access plus 1 week"
+    ExpiresByType application/x-javascript "access plus 1 week"
+
+    # HTML - 0 segundos (Nao gerar cache)
+    ExpiresByType text/html "access plus 0 seconds"
+</IfModule>
+
+# Headers Adicionais para Controle Estrito de Cache via mod_headers
+<IfModule mod_headers.c>
+    # HTML - FORCAR CACHE ZERO (no-cache, no-store, must-revalidate)
+    <FilesMatch "\.(html|htm)$">
+        Header set Cache-Control "no-cache, no-store, must-revalidate, max-age=0"
+        Header set Pragma "no-cache"
+        Header set Expires "0"
+    </FilesMatch>
+
+    # CSS e JS - Cache de 1 Semana
+    <FilesMatch "\.(css|js)$">
+        Header set Cache-Control "max-age=604800, public"
+    </FilesMatch>
+
+    # Imagens e Midias - Cache de 1 Mes
+    <FilesMatch "\.(jpg|jpeg|png|webp|svg|gif|ico)$">
+        Header set Cache-Control "max-age=2592000, public"
+    </FilesMatch>
+</IfModule>
